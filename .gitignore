@@ -1,0 +1,10 @@
+# Project place file
+/Hanok_Jeggi.rbxlx
+
+# Roblox Studio lock files
+/*.rbxlx.lock
+/*.rbxl.lock
+src/shared/Modules/.DS_Store
+selene.toml
+stylua.toml
+.DS_Store
