@@ -39,24 +39,15 @@ function SetRemotes.init()
 		newRemotes("RemoteEvent", "RequestAuth", "Role")
 		newRemotes("RemoteEvent", "AuthResult", "Role")
 
-		-- Teacher
-		newRemotes("RemoteEvent", "StartSuspectGame", "Teacher")
-		newRemotes("RemoteEvent", "ShowNote", "Teacher")
-		newRemotes("RemoteEvent", "TeacherDataUpdate", "Teacher")
+		-- LeaderBoard
+		newRemotes("RemoteEvent", "LeaderBoardUpdateEvent", "LeaderBoard")
+		newRemotes("RemoteEvent", "LeaderBoardUpdateClientEvent", "LeaderBoard")
 
-		-- Student
-		newRemotes("RemoteEvent", "ShowUI", "Student")
-		newRemotes("RemoteEvent", "UpdateGameData", "Student")
-		newRemotes("RemoteEvent", "DecideButton", "Student")
-		newRemotes("RemoteEvent", "RetryEvent", "Student")
-		newRemotes("RemoteEvent", "HatButton", "Student")
-		newRemotes("RemoteEvent", "PocketButton", "Student")
-		newRemotes("RemoteEvent", "ShoesButton", "Student")
-		newRemotes("RemoteEvent", "PartSelectionEvent", "Student")
-
-		-- Game Common
-		newRemotes("RemoteEvent", "UpdateNoteData", "Common")
-		newRemotes("RemoteEvent", "ResetCharacters", "Common")
+		-- Jeggi
+		newRemotes("RemoteEvent", "GameOverEvent", "Jeggi")
+		newRemotes("RemoteEvent", "JeggiCreationEvent", "Jeggi")
+		newRemotes("RemoteEvent", "ScoreUpdateEvent", "Jeggi")
+		newRemotes("RemoteEvent", "StartGameEvent", "Jeggi")
 	end
 
 	SetRemotes.createRemotes()

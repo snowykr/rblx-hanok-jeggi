@@ -1,14 +1,8 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local InstanceUIScript = require(script:WaitForChild("InstanceUIScript"))
+local ClientSideUIScript = require(script:WaitForChild("ClientSideUIScript"))
 
--- Set the appropriate script based on the player's role
-local function onRoleChanged()
-	local role = LocalPlayer:GetAttribute("Role")
-	if role == "Student" then
-		require(script.StudentClient).init()
-	elseif role == "Teacher" then
-		require(script.TeacherClient).init()
-	end
-end
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes") -- 대기
 
-LocalPlayer:GetAttributeChangedSignal("Role"):Connect(onRoleChanged)
+InstanceUIScript.init()
+ClientSideUIScript.init()
