@@ -19,12 +19,6 @@ function Loading:Init()
 	mainFrame.BackgroundTransparency = 0
 	mainFrame.Parent = loadingScreen
 
-	-- 배경 프레임
-	local background = Instance.new("Frame")
-	background.Size = UDim2.new(1, 0, 1, 0)
-	background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	background.Parent = mainFrame
-
 	-- 타이틀 텍스트
 	local titleText = Instance.new("TextLabel")
 	titleText.Text = "4Fun Speaking"
@@ -34,28 +28,21 @@ function Loading:Init()
 	titleText.Size = UDim2.new(0.8, 0, 0.1, 0)
 	titleText.Position = UDim2.new(0.1, 0, 0.4, 0)
 	titleText.BackgroundTransparency = 1
-	titleText.Parent = background
+	titleText.Parent = mainFrame
 
 	-- 로딩바 외부 베이스
-	local loadingBarOuterBase = Instance.new("Frame")
-	loadingBarOuterBase.Size = UDim2.new(0.6, 0, 0.05, 0)
-	loadingBarOuterBase.Position = UDim2.new(0.2, 0, 0.55, 0)
-	loadingBarOuterBase.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	loadingBarOuterBase.Parent = background
-
-	-- 로딩바 내부 베이스
-	local loadingBarInnerBase = Instance.new("Frame")
-	loadingBarInnerBase.Size = UDim2.new(0.99, 0, 0.8, 0)
-	loadingBarInnerBase.Position = UDim2.new(0.005, 0, 0.1, 0)
-	loadingBarInnerBase.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	loadingBarInnerBase.Parent = loadingBarOuterBase
+	local loadingBarBase = Instance.new("Frame")
+	loadingBarBase.Size = UDim2.new(0.6, 0, 0.05, 0)
+	loadingBarBase.Position = UDim2.new(0.2, 0, 0.55, 0)
+	loadingBarBase.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	loadingBarBase.Parent = mainFrame
 
 	-- 로딩바
 	local loadingBar = Instance.new("Frame")
 	loadingBar.Size = UDim2.new(0, 0, 1, 0)
 	loadingBar.Position = UDim2.new(0, 0, 0, 0)
 	loadingBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	loadingBar.Parent = loadingBarInnerBase
+	loadingBar.Parent = loadingBarBase
 
 	-- 퍼센티지 텍스트
 	local percentText = Instance.new("TextLabel")
@@ -66,40 +53,65 @@ function Loading:Init()
 	percentText.Size = UDim2.new(0.2, 0, 0.05, 0)
 	percentText.Position = UDim2.new(0.4, 0, 0.62, 0)
 	percentText.BackgroundTransparency = 1
-	percentText.Parent = background
+	percentText.Parent = mainFrame
 
-	-- 둥근 모서리 적용
+	-- 둥근 모서리 적용 함수
 	local function applyRoundedCorners(frame, radius)
 		local uiCorner = Instance.new("UICorner")
 		uiCorner.CornerRadius = UDim.new(radius, 0)
 		uiCorner.Parent = frame
 	end
-
-	applyRoundedCorners(loadingBarOuterBase, 1)
-	applyRoundedCorners(loadingBarInnerBase, 1)
+	applyRoundedCorners(loadingBarBase, 1)
 	applyRoundedCorners(loadingBar, 1)
+
+	-- 테두리 적용 함수
+	local function applyStrokeCorners(frame)
+		local uiStroke = Instance.new("UIStroke")
+		uiStroke.Color = Color3.fromRGB(255, 255, 255)
+		uiStroke.Thickness = 4
+		uiStroke.Parent = frame
+	end
+	applyStrokeCorners(loadingBarBase)
+
+	-- 투명도 설정 함수
+	local function setTransparencyRecursive(object, fadeProgress)
+		local transparencyProperties = {
+			"BackgroundTransparency",
+			"TextTransparency",
+			"ImageTransparency",
+			"ScrollBarImageTransparency",
+			"Transparency",
+		}
+
+		-- 현재 객체의 투명도 속성 설정
+		for _, prop in ipairs(transparencyProperties) do
+			pcall(function()
+				if object[prop] ~= nil then
+					object[prop] = object[prop] + (1 - object[prop]) * fadeProgress
+				end
+			end)
+		end
+
+		-- 자식 객체들에 대해 재귀적으로 함수 호출
+		for _, child in ipairs(object:GetChildren()) do
+			setTransparencyRecursive(child, fadeProgress)
+		end
+	end
+
+	-- 로딩 화면 제거
+	local function removeLoadingScreen()
+		for fadeProgress = 0, 1, 0.1 do
+			setTransparencyRecursive(mainFrame, fadeProgress)
+			task.wait(0.03)
+		end
+
+		loadingScreen:Destroy()
+	end
 
 	-- 로딩 로직
 	local function updateLoadingBar(progress)
 		loadingBar.Size = UDim2.new(progress, 0, 1, 0)
 		percentText.Text = string.format("%d%%", math.floor(progress * 100))
-	end
-
-	-- 로딩 화면 제거
-	local function removeLoadingScreen()
-		for i = 0, 1, 0.1 do
-			mainFrame.BackgroundTransparency = i
-			for _, child in pairs(mainFrame:GetDescendants()) do
-				if child:IsA("GuiObject") then
-					child.BackgroundTransparency = 1
-					if child:IsA("TextLabel") or child:IsA("TextButton") then
-						child.TextTransparency = i
-					end
-				end
-			end
-			task.wait(0.05)
-		end
-		loadingScreen:Destroy()
 	end
 
 	---------------------------- 로딩 스크립트 ----------------------------

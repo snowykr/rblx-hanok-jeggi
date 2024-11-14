@@ -37,8 +37,6 @@ local function CreateGameUI()
 	gameOverText.Visible = false
 	gameOverText.Parent = screenGui
 
-	print("Game UI created for player: " .. player.Name)
-
 	-- PlayButton 클릭 시 이벤트 처리
 	playButton.MouseButton1Click:Connect(function()
 		print("PlayButton clicked by player: " .. player.Name)
@@ -60,7 +58,6 @@ end
 function InstanceUIScript.init()
 	-- 서버로부터 게임 시작 신호를 받으면 UI 생성
 	Remotes.Jeggi.StartGameEvent.OnClientEvent:Connect(function()
-		print("Received StartGameEvent from server")
 		CreateGameUI()
 	end)
 
