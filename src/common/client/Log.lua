@@ -1,132 +1,98 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local UIComponents = require(script.Parent.UIComponents)
+
 local Log = {}
 
-function Log.init()
-	local ReplicatedStorage = game:GetService("ReplicatedStorage")
-	local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+-- 로컬 변수
+local player = Players.LocalPlayer
+local PlayerGui = player.PlayerGui
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
-	local Players = game:GetService("Players")
-	local player = Players.LocalPlayer
-	local playerGui = player.PlayerGui
+local messages = {}
+local logFrames = {}
 
-	local TweenService = game:GetService("TweenService")
+local MAX_LOGS = 3
+local DISPLAY_DURATION = 3
 
-	local mainFrame, logGui
-	local radius = UDim.new(0, 20)
-	local maxLogs = 3
-	local logFrames = {}
+-- UI 생성 함수
+local function createLogUI()
+	-- ScreenGui, MainFrame 생성
+	local logGui = UIComponents.createSG(PlayerGui, {
+		Name = "LogGui",
+		DisplayOrder = 49,
+	})
+	local mainFrame = UIComponents.createM0(logGui)
 
-	local function createLogFrame(index)
-		-- LogFrame
-		local frame = Instance.new("Frame")
-		frame.ZIndex = 2
-		frame.Name = "LogFrame" .. index
-		frame.Size = UDim2.new(0.3 * (index > 1 and 0.8 or 1), 0, 0.05 * (index > 1 and 0.8 or 1), 0)
-		frame.Position = UDim2.new(0.7, 0, 0.215 + (index - 1) * 0.06 * (index > 2 and 0.92 or 1), 0)
-		frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-		frame.BackgroundTransparency = 1
-		frame.Visible = false
-		frame.Parent = mainFrame
+	-- LogFrame 생성
+	for i = 1, MAX_LOGS do
+		local frame = UIComponents.createF0(mainFrame, {
+			Name = "LogFrame" .. i,
+			Size = UDim2.new(0.3 * (i > 1 and 0.8 or 1), 0, 0.05 * (i > 1 and 0.8 or 1), 0),
+			Position = UDim2.new(0.7, 0, 0.215 + (i - 1) * 0.06 * (i > 2 and 0.92 or 1), 0),
+			BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+			BackgroundTransparency = 1,
+		})
 
-		-- UICorner for logFrame
-		local logFrameCorner = Instance.new("UICorner")
-		logFrameCorner.CornerRadius = radius
-		logFrameCorner.Parent = frame
-
-		-- ContentLabel
-		local label = Instance.new("TextLabel")
-		label.ZIndex = 3
-		label.Name = "ContentLabel"
-		label.Size = UDim2.new(0.98, 0, 0.9, 0)
-		label.Position = UDim2.new(0.01, 0, 0.005, 0)
-		label.BackgroundTransparency = 1
-		label.TextTransparency = 1
-		label.Text = ""
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(255, 255, 255)
-		label.Font = Enum.Font.TitilliumWeb
-		label.Parent = frame
+		UIComponents.createTL2(frame, {
+			Name = "ContentLabel",
+			Size = UDim2.new(0.98, 0, 0.9, 0),
+			Position = UDim2.new(0.01, 0, 0.005, 0),
+			Text = "",
+			TextTransparency = 1,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = 1,
+		})
 
 		table.insert(logFrames, frame)
-		return frame, label
 	end
+end
 
-	local function createlogUI()
-		-- logGui
-		logGui = Instance.new("ScreenGui")
-		logGui.DisplayOrder = 999
-		logGui.Parent = playerGui
-		logGui.Name = "LogGui"
+-- 로그 업데이트 함수
+local function updateLogs()
+	local currentTime = tick()
 
-		-- MainFrame
-		mainFrame = Instance.new("Frame")
-		mainFrame.ZIndex = 1
-		mainFrame.Name = "MainFrame"
-		mainFrame.Size = UDim2.new(1, 0, 1, 0)
-		mainFrame.Position = UDim2.new(0, 0, 0, 0)
-		mainFrame.BackgroundTransparency = 1
-		mainFrame.Visible = true
-		mainFrame.Parent = logGui
-
-		for i = 1, maxLogs do
-			createLogFrame(i)
-		end
-	end
-
-	createlogUI()
-
-	-- log Event Handler
-	local messages = {}
-
-	local function tweenVisibility(frame, isVisible)
-		local goal = { BackgroundTransparency = isVisible and 0.4 or 1 }
-		local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local tween = TweenService:Create(frame, tweenInfo, goal)
-		tween:Play()
-
-		local label = frame:FindFirstChild("ContentLabel")
-		if label then
-			local labelGoal = { TextTransparency = isVisible and 0 or 1 }
-			local labelTween = TweenService:Create(label, tweenInfo, labelGoal)
-			labelTween:Play()
-		end
-	end
-
-	local function updateLogs()
-		local currentTime = tick()
-		for i, logFrame in ipairs(logFrames) do
-			if messages[i] then
-				logFrame.ContentLabel.Text = messages[i].message
-				if not logFrame.Visible then
-					tweenVisibility(logFrame, true)
-					logFrame.Visible = true
-				end
-				if currentTime - messages[i].time >= 3 then
-					table.remove(messages, i)
-					tweenVisibility(logFrame, false)
-					delay(0.5, function()
-						logFrame.Visible = false
-					end)
-				end
-			else
-				if logFrame.Visible then
-					tweenVisibility(logFrame, false)
-					delay(0.5, function()
-						logFrame.Visible = false
-					end)
-				end
+	for i, logFrame in ipairs(logFrames) do
+		if messages[i] then
+			logFrame.ContentLabel.Text = messages[i].message
+			if not logFrame.Visible then
+				UIComponents.setTransparencyRecursive(logFrame, 0)
+				logFrame.Visible = true
+			end
+			if currentTime - messages[i].time >= DISPLAY_DURATION then
+				table.remove(messages, i)
+				UIComponents.setTransparencyRecursive(logFrame, 1)
+				delay(0.5, function()
+					logFrame.Visible = false
+				end)
+			end
+		else
+			if logFrame.Visible then
+				UIComponents.setTransparencyRecursive(logFrame, 1)
+				delay(0.5, function()
+					logFrame.Visible = false
+				end)
 			end
 		end
 	end
+end
 
-	Remotes.Log.LogEvent.OnClientEvent:Connect(function(message)
-		table.insert(messages, 1, { message = message, time = tick() })
-		if #messages > maxLogs then
-			table.remove(messages, maxLogs + 1)
-		end
-		updateLogs()
-	end)
+-- 로그 업데이트
+game:GetService("RunService").Heartbeat:Connect(updateLogs)
 
-	game:GetService("RunService").RenderStepped:Connect(updateLogs)
+Remotes.Log.LogEvent.OnClientEvent:Connect(function(new_message)
+	table.insert(messages, 1, { message = new_message, time = tick() })
+	if #messages > MAX_LOGS then
+		table.remove(messages, MAX_LOGS + 1)
+	end
+end)
+
+-- 초기화 함수
+function Log.init()
+	createLogUI()
+
+	print("Log initialized")
 end
 
 return Log
